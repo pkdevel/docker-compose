@@ -5,7 +5,6 @@ services:
     restart: unless-stopped
     ports:
       - 8888:8888
-      - 9001:9001
     networks:
       - atuin
     environment:
