@@ -1,0 +1,59 @@
+services:
+  gitea:
+    image: gitea/gitea:latest
+    container_name: gitea
+    restart: unless-stopped
+    ports:
+      - 4000:3000
+    networks:
+      - gitea
+      - dockerhost
+    volumes:
+      - /data/docker/volumes/gitea:/data
+      - /etc/timezone:/etc/timezone:ro
+      - /etc/localtime:/etc/localtime:ro
+
+  drone:
+    image: drone/drone:latest
+    container_name: drone
+    restart: unless-stopped
+    ports:
+      - 4001:80
+    networks:
+      - gitea
+      - drone
+    volumes:
+      - /data/docker/volumes/drone:/data
+      - /etc/timezone:/etc/timezone:ro
+      - /etc/localtime:/etc/localtime:ro
+    environment:
+      - DRONE_GITEA_SERVER=http://manji.fritz.box:4000
+      - DRONE_GITEA_CLIENT_ID=${DRONE_GITEA_CLIENT_ID}
+      - DRONE_GITEA_CLIENT_SECRET=${DRONE_GITEA_CLIENT_SECRET}
+      - DRONE_RPC_SECRET=${DRONE_RPC_SECRET}
+      - DRONE_SERVER_HOST=${HOSTNAME}:4001
+      - DRONE_SERVER_PROTO=http
+
+  drone-runner:
+    image: drone/drone-runner-docker:latest
+    container_name: drone-runner
+    restart: unless-stopped
+    depends_on:
+      - drone
+    networks:
+      - drone
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /etc/timezone:/etc/timezone:ro
+      - /etc/localtime:/etc/localtime:ro
+    environment:
+      - DRONE_RPC_PROTO=http
+      - DRONE_RPC_HOST=drone
+      - DRONE_RPC_SECRET=${DRONE_RPC_SECRET}
+      - DRONE_RUNNER_CAPACITY=2
+      - DRONE_RUNNER_NAME=drone-runner-1
+
+networks:
+  gitea:
+  gitea-db:
+  drone:

@@ -1,0 +1,74 @@
+services:
+  nginx:
+    image: nginx:latest
+    container_name: nginx
+    restart: unless-stopped
+    ports:
+      - 80:80
+      - 443:443
+      - 9080:9080
+      - 9443:9443
+    networks:
+      - dockerhost
+      - http-int
+    volumes:
+      - /data/docker/volumes/nginx/conf/:/etc/nginx/conf.d
+      - /data/docker/volumes/nginx/site:/usr/share/nginx/html
+      - /data/docker/volumes/nginx/letsencrypt/etc:/etc/letsencrypt
+      - /data/docker/volumes/nginx/certbot/www:/var/www/certbot
+    environment:
+      - TZ=Europe/Berlin
+    command: '/bin/sh -c ''while :; do sleep 6h & wait $${!}; nginx -s reload; done & nginx -g "daemon off;"'''
+
+  certbot:
+    image: certbot/certbot:latest
+    container_name: certbot
+    restart: unless-stopped
+    volumes:
+      - /data/docker/volumes/nginx/letsencrypt/etc:/etc/letsencrypt
+      - /data/docker/volumes/nginx/letsencrypt/log:/var/log/letsencrypt
+      - /data/docker/volumes/nginx/certbot/www:/var/www/certbot
+    environment:
+      - TZ=Europe/Berlin
+    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
+
+  homarr:
+    image: ghcr.io/ajnart/homarr:latest
+    container_name: homarr
+    restart: unless-stopped
+    # depends_on:
+    #   - nginx
+    # networks:
+    #   - http-int
+    ports:
+      - 7575:7575
+    environment:
+      - TZ=Europe/Berlin
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /data/docker/volumes/homarr/configs:/app/data/configs
+      - /data/docker/volumes/homarr/icons:/app/public/icons
+      - /data/docker/volumes/homarr/data:/data
+
+  heimdall:
+    image: lscr.io/linuxserver/heimdall:latest
+    container_name: heimdall
+    restart: unless-stopped
+    networks:
+      - http-int
+    environment:
+      - TZ=Europe/Berlin
+    volumes:
+      - /data/docker/volumes/heimdall:/config
+
+  dockerhome:
+    image: pkdevel/docker-home:latest
+    container_name: dockerhome
+    restart: unless-stopped
+    ports:
+      - 6969:8080
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+
+networks:
+  http-int:

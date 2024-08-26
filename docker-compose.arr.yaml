@@ -1,0 +1,120 @@
+services:
+  nzbget:
+    image: nzbgetcom/nzbget:latest
+    container_name: nzbget
+    restart: unless-stopped
+    networks:
+      - nzbget
+    ports:
+      - 6789:6789
+    volumes:
+      - /data/docker/volumes/nzbget:/config
+      - /share/downloads:/share/downloads
+      - /share/media:/share/media
+    environment:
+      - PUID=1337
+      - PGID=1337
+      - TZ=Europe/Berlin
+
+  radarr:
+    image: linuxserver/radarr:latest
+    container_name: radarr
+    restart: unless-stopped
+    networks:
+      - radarr
+      - nzbget
+    ports:
+      - 7878:7878
+    volumes:
+      - /data/docker/volumes/radarr:/config
+      - /share/media:/share/media
+    environment:
+      - PUID=1337
+      - PGID=1337
+      - TZ=Europe/Berlin
+      - UMASK_SET=002
+
+  radarr-tbot:
+    image: itsmegb/telegram-radarr-bot:latest
+    container_name: radarr-tbot
+    restart: unless-stopped
+    depends_on:
+      - radarr
+    networks:
+      - radarr
+    volumes:
+      - /data/docker/volumes/radarr-telegram-bot:/config
+    environment:
+      - TZ=Europe/Berlin
+
+  sonarr:
+    image: linuxserver/sonarr:latest
+    container_name: sonarr
+    restart: unless-stopped
+    networks:
+      - sonarr
+      - nzbget
+    ports:
+      - 8989:8989
+    volumes:
+      - /data/docker/volumes/sonarr:/config
+      - /share/media:/share/media
+    environment:
+      - PUID=1337
+      - PGID=1337
+      - TZ=Europe/Berlin
+      - UMASK_SET=002
+
+  sonarr-tbot:
+    image: subzero79/docker-telegram-sonarr-bot:latest
+    container_name: sonarr-tbot
+    restart: unless-stopped
+    depends_on:
+      - sonarr
+    networks:
+      - sonarr
+    volumes:
+      - /data/docker/volumes/sonarr-telegram-bot:/config
+    environment:
+      - TZ=Europe/Berlin
+
+  prowlarr:
+    image: linuxserver/prowlarr:latest
+    container_name: prowlarr
+    restart: unless-stopped
+    depends_on:
+      - radarr
+      - sonarr
+    networks:
+      - radarr
+      - sonarr
+      - nzbget
+    ports:
+      - 9696:9696
+    volumes:
+      - /data/docker/volumes/prowlarr:/config
+    environment:
+      - PUID=1337
+      - PGID=1337
+      - TZ=Europe/Berlin
+
+  recyclarr:
+    image: ghcr.io/recyclarr/recyclarr:latest
+    container_name: recyclarr
+    restart: unless-stopped
+    depends_on:
+      - radarr
+      - sonarr
+    user: 1337:1337
+    networks:
+      - radarr
+      - sonarr
+    volumes:
+      - /data/docker/volumes/recyclarr:/config
+    environment:
+      - TZ=Europe/Berlin
+
+networks:
+  nzbget:
+  radarr:
+  sonarr:

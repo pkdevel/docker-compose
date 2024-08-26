@@ -1,0 +1,38 @@
+services:
+  home-assistant:
+    image: ghcr.io/home-assistant/home-assistant:latest
+    container_name: home-assistant
+    restart: unless-stopped
+    depends_on:
+      - mqtt
+      - influxdb
+    network_mode: host
+    volumes:
+      - /data/docker/volumes/home-assistant:/config
+      - /etc/localtime:/etc/localtime:ro
+      - /run/dbus:/run/dbus:ro
+    environment:
+      - TZ=Europe/Berlin
+
+  mqtt:
+    image: eclipse-mosquitto:latest
+    container_name: mqtt
+    restart: unless-stopped
+    ports:
+      - 1883:1883
+    volumes:
+      - /data/docker/volumes/mqtt/cfg/mosquitto.conf:/mosquitto/config/mosquitto.conf
+      - /data/docker/volumes/mqtt/data:/mosquitto/data
+    environment:
+      - TZ=Europe/Berlin
+
+  node-red:
+    image: nodered/node-red:latest
+    container_name: node-red
+    restart: unless-stopped
+    ports:
+      - 1880:1880
+    volumes:
+      - /data/docker/volumes/node-red:/data
+    environment:
+      - TZ=Europe/Berlin

@@ -1,0 +1,31 @@
+services:
+  jellyfin:
+    image: linuxserver/jellyfin:latest
+    container_name: jellyfin
+    restart: unless-stopped
+    environment:
+      - PUID=1337
+      - PGID=1337
+      - TZ=Europe/Berlin
+    devices:
+      - /dev/dri:/dev/dri
+    volumes:
+      - /data/docker/volumes/jellyfin:/config
+      - /data/jellyfin-cache:/config/cache
+      - /share/media/tv:/data/tvshows
+      - /share/media/movies:/data/movies
+    ports:
+      - 8096:8096
+
+  jellyseerr:
+    image: fallenbagel/jellyseerr:latest
+    container_name: jellyseerr
+    environment:
+      - LOG_LEVEL=debug
+      - TZ=Europe/Berlin
+    ports:
+      - 5055:5055
+    volumes:
+      - /data/docker/volumes/jellyfin:/config
+      - /path/to/appdata/config:/app/config
+    restart: unless-stopped

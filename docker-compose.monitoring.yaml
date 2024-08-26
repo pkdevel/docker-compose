@@ -1,0 +1,59 @@
+services:
+  influxdb:
+    image: influxdb:1.8-alpine
+    container_name: influxdb
+    restart: unless-stopped
+    networks:
+      - monitoring
+    ports:
+      - 8086:8086
+    volumes:
+      - /data/docker/volumes/influxdb/influxdb.conf:/etc/influxdb/influxdb.conf:ro
+      - /data/docker/volumes/influxdb/data:/var/lib/influxdb
+    environment:
+      - TZ=Europe/Berlin
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    restart: unless-stopped
+    depends_on:
+      - influxdb
+    networks:
+      - monitoring
+    ports:
+      - 3000:3000
+    volumes:
+      - /data/docker/volumes/grafana/data:/var/lib/grafana
+      - /data/docker/volumes/grafana/grafana.ini:/etc/grafana/grafana.ini:rw
+    environment:
+      - TZ=Europe/Berlin
+  # prometheus:
+  #   image: prom/prometheus:latest
+  #   container_name: prometheus
+  #   restart: unless-stopped
+  #   networks:
+  #     - monitoring
+  #   ports:
+  #     - 9090:9090/tcp
+  #   environment:
+  #     - TZ=Europe/Berlin
+  #   volumes:
+  #     - /data/docker/volumes/prometheus/config:/etc/prometheus
+
+  # cadvisor:
+  #   image: gcr.io/cadvisor/cadvisor:latest
+  #   container_name: cadvisor
+  #   restart: unless-stopped
+  #   networks:
+  #     - monitoring
+  #   volumes:
+  #     - /:/rootfs:ro
+  #     - /var/run:/var/run:rw
+  #     - /var/run/docker.sock:/var/run/docker.sock:rw
+  #     - /sys:/sys:ro
+  #     - /var/lib/docker/:/var/lib/docker:ro
+  #     - /dev/disk/:/dev/disk:ro
+
+networks:
+  monitoring:
