@@ -9,7 +9,6 @@ services:
       - 9443:9443
     networks:
       - dockerhost
-      - http-int
     volumes:
       - /data/docker/volumes/nginx/conf/:/etc/nginx/conf.d
       - /data/docker/volumes/nginx/site:/usr/share/nginx/html
@@ -31,14 +30,38 @@ services:
       - TZ=Europe/Berlin
     entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
 
+  traefik:
+    image: traefik:latest
+    container_name: traefik
+    restart: unless-stopped
+    command:
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+    ports:
+      - 80:80
+      - 8080:8080
+    networks:
+      - web
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+
   dockerhome:
     image: pkdevel/docker-home:latest
     container_name: dockerhome
     restart: unless-stopped
-    ports:
-      - 6969:8080
+    networks:
+      - web
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=web"
+      - "traefik.http.routers.dockerhome.rule=Host(`docker.${DOMAIN}`)"
+      - "traefik.http.routers.dockerhome.entrypoints=web"
+      - "traefik.http.services.dockerhome.loadbalancer.server.port=8080"
 
 networks:
-  http-int:
+  web:
+    name: web

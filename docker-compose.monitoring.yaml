@@ -21,13 +21,19 @@ services:
       - influxdb
     networks:
       - monitoring
-    ports:
-      - 3000:3000
+      - web
     volumes:
       - /data/docker/volumes/grafana/data:/var/lib/grafana
       - /data/docker/volumes/grafana/grafana.ini:/etc/grafana/grafana.ini:rw
     environment:
       - TZ=Europe/Berlin
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=web"
+      - "traefik.http.routers.grafana.rule=Host(`grafana.${DOMAIN}`)"
+      - "traefik.http.routers.grafana.entrypoints=web"
+      - "traefik.http.services.grafana.loadbalancer.server.port=3000"
+
   # prometheus:
   #   image: prom/prometheus:latest
   #   container_name: prometheus

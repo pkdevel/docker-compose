@@ -5,8 +5,7 @@ services:
     restart: unless-stopped
     networks:
       - nzbget
-    ports:
-      - 6789:6789
+      - web
     volumes:
       - /data/docker/volumes/nzbget:/config
       - /share/downloads:/share/downloads
@@ -15,6 +14,12 @@ services:
       - PUID=1337
       - PGID=1337
       - TZ=Europe/Berlin
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=web"
+      - "traefik.http.routers.nzbget.rule=Host(`nzbget.${DOMAIN}`)"
+      - "traefik.http.routers.nzbget.entrypoints=web"
+      - "traefik.http.services.nzbget.loadbalancer.server.port=6789"
 
   radarr:
     image: linuxserver/radarr:latest
@@ -23,8 +28,7 @@ services:
     networks:
       - radarr
       - nzbget
-    ports:
-      - 7878:7878
+      - web
     volumes:
       - /data/docker/volumes/radarr:/config
       - /share/media:/share/media
@@ -33,6 +37,12 @@ services:
       - PGID=1337
       - TZ=Europe/Berlin
       - UMASK_SET=002
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=web"
+      - "traefik.http.routers.radarr.rule=Host(`radarr.${DOMAIN}`)"
+      - "traefik.http.routers.radarr.entrypoints=web"
+      - "traefik.http.services.radarr.loadbalancer.server.port=7878"
 
   radarr-tbot:
     image: itsmegb/telegram-radarr-bot:latest
@@ -54,8 +64,7 @@ services:
     networks:
       - sonarr
       - nzbget
-    ports:
-      - 8989:8989
+      - web
     volumes:
       - /data/docker/volumes/sonarr:/config
       - /share/media:/share/media
@@ -64,6 +73,12 @@ services:
       - PGID=1337
       - TZ=Europe/Berlin
       - UMASK_SET=002
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=web"
+      - "traefik.http.routers.sonarr.rule=Host(`sonarr.${DOMAIN}`)"
+      - "traefik.http.routers.sonarr.entrypoints=web"
+      - "traefik.http.services.sonarr.loadbalancer.server.port=8989"
 
   sonarr-tbot:
     image: subzero79/docker-telegram-sonarr-bot:latest
@@ -89,14 +104,19 @@ services:
       - radarr
       - sonarr
       - nzbget
-    ports:
-      - 9696:9696
+      - web
     volumes:
       - /data/docker/volumes/prowlarr:/config
     environment:
       - PUID=1337
       - PGID=1337
       - TZ=Europe/Berlin
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=web"
+      - "traefik.http.routers.prowlarr.rule=Host(`prowlarr.${DOMAIN}`)"
+      - "traefik.http.routers.prowlarr.entrypoints=web"
+      - "traefik.http.services.prowlarr.loadbalancer.server.port=9696"
 
   recyclarr:
     image: ghcr.io/recyclarr/recyclarr:latest

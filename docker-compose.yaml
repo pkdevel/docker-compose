@@ -55,22 +55,22 @@ services:
       - 53:53/tcp
       - 53:53/udp
       - 67:67/udp
-      - 9081:80/tcp
+    networks:
+      - web
     environment:
       - TZ=Europe/Berlin
       - WEBPASSWORD=${WEBPASSWORD}
-      - VIRTUAL_HOST=${HOSTNAME}
-      - IPv6=false
-      - PIHOLE_DNS_=208.67.222.222;208.67.220.220
       - DNSSEC=true
-      - REV_SERVER=true
-      - REV_SERVER_DOMAIN=${DOMAIN_INT}
-      - REV_SERVER_TARGET=192.168.178.1
-      - REV_SERVER_CIDR=192.168.178.0/24
       - DNSMASQ_LISTENING=all
     volumes:
       - /data/docker/volumes/pihole/cfg:/etc/pihole/
       - /data/docker/volumes/pihole/dnsmasq.d:/etc/dnsmasq.d/
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=web"
+      - "traefik.http.routers.pihole.rule=Host(`pihole.${DOMAIN}`)"
+      - "traefik.http.routers.pihole.entrypoints=web"
+      - "traefik.http.services.pihole.loadbalancer.server.port=80"
 
   wireguard:
     image: lscr.io/linuxserver/wireguard:latest
@@ -83,7 +83,7 @@ services:
       - PUID=1000
       - PGID=1000
       - TZ=Europe/Berlin
-      - SERVERURL=${DOMAIN_EXT}
+      - SERVERURL=${CF_SUBDOMAIN}.${CF_ZONE}
       - SERVERPORT=51820
       - PEERS=iphone,macbook
       - PEERDNS=auto
@@ -108,8 +108,14 @@ services:
       - OLLAMA_BASE_URL=http://192.168.178.77:11434/
     volumes:
       - /data/docker/volumes/open-webui:/app/backend/data
-    ports:
-      - 8080:8080
+    networks:
+      - web
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=web"
+      - "traefik.http.routers.ai.rule=Host(`ai.${DOMAIN}`)"
+      - "traefik.http.routers.ai.entrypoints=web"
+      - "traefik.http.services.ai.loadbalancer.server.port=8080"
 
 networks:
   dockerhost:

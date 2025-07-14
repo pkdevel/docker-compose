@@ -3,6 +3,8 @@ services:
     image: linuxserver/jellyfin:latest
     container_name: jellyfin
     restart: unless-stopped
+    networks:
+      - web
     environment:
       - PUID=1337
       - PGID=1337
@@ -14,18 +16,27 @@ services:
       - /data/jellyfin-cache:/config/cache
       - /share/media/tv:/data/tvshows
       - /share/media/movies:/data/movies
-    ports:
-      - 8096:8096
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=web"
+      - "traefik.http.routers.jellyfin.rule=Host(`jellyfin.${DOMAIN}`)"
+      - "traefik.http.routers.jellyfin.entrypoints=web"
+      - "traefik.http.services.jellyfin.loadbalancer.server.port=8096"
 
   jellyseerr:
     image: fallenbagel/jellyseerr:latest
     container_name: jellyseerr
+    restart: unless-stopped
+    networks:
+      - web
     environment:
       - LOG_LEVEL=debug
       - TZ=Europe/Berlin
-    ports:
-      - 5055:5055
     volumes:
-      - /data/docker/volumes/jellyfin:/config
-      - /path/to/appdata/config:/app/config
-    restart: unless-stopped
+      - /data/docker/volumes/jellyseerr:/app/config
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=web"
+      - "traefik.http.routers.jellyseerr.rule=Host(`jellyseerr.${DOMAIN}`)"
+      - "traefik.http.routers.jellyseerr.entrypoints=web"
+      - "traefik.http.services.jellyseerr.loadbalancer.server.port=5055"
