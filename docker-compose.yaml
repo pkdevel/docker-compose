@@ -8,6 +8,15 @@ include:
   - docker-compose.monitoring.yaml
 
 services:
+  cloudflare-ddns:
+    image: oznu/cloudflare-ddns:latest
+    container_name: cloudflare-ddns
+    restart: unless-stopped
+    environment:
+      - API_KEY=${CF_API_KEY}
+      - ZONE=${CF_ZONE}
+      - SUBDOMAIN=${CF_SUBDOMAIN}
+
   dockerhost:
     image: qoomon/docker-host:latest
     container_name: dockerhost
