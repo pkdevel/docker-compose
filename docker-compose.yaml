@@ -99,7 +99,17 @@ services:
       - dockerhost
     sysctls:
       - net.ipv4.conf.all.src_valid_mark=1
+
+  open-webui:
+    image: ghcr.io/open-webui/open-webui:main
+    container_name: open-webui
     restart: unless-stopped
+    environment:
+      - OLLAMA_BASE_URL=http://192.168.178.77:11434/
+    volumes:
+      - /data/docker/volumes/open-webui:/app/backend/data
+    ports:
+      - 8080:8080
 
 networks:
   dockerhost:
