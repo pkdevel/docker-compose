@@ -86,7 +86,7 @@ services:
       - SERVERURL=${CF_SUBDOMAIN}.${CF_ZONE}
       - SERVERPORT=51820
       - PEERS=iphone,macbook
-      - PEERDNS=auto
+      - PEERDNS=192.168.178.31
       - ALLOWEDIPS=0.0.0.0/0
       - PERSISTENTKEEPALIVE_PEERS=all
       - LOG_CONFS=true
