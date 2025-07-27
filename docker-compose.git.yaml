@@ -3,36 +3,46 @@ services:
     image: gitea/gitea:latest
     container_name: gitea
     restart: unless-stopped
-    ports:
-      - 4000:3000
     networks:
       - gitea
       - dockerhost
+      - web
     volumes:
       - /data/docker/volumes/gitea:/data
       - /etc/timezone:/etc/timezone:ro
       - /etc/localtime:/etc/localtime:ro
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=web"
+      - "traefik.http.routers.git.rule=Host(`git.${DOMAIN}`)"
+      - "traefik.http.routers.git.middlewares=redirect-to-https"
+      - "traefik.http.services.git.loadbalancer.server.port=3000"
 
   drone:
     image: drone/drone:latest
     container_name: drone
     restart: unless-stopped
-    ports:
-      - 4001:80
     networks:
       - gitea
       - drone
+      - web
     volumes:
       - /data/docker/volumes/drone:/data
       - /etc/timezone:/etc/timezone:ro
       - /etc/localtime:/etc/localtime:ro
     environment:
-      - DRONE_GITEA_SERVER=http://manji.fritz.box:4000
+      - DRONE_GITEA_SERVER=https://git.${DOMAIN}
       - DRONE_GITEA_CLIENT_ID=${DRONE_GITEA_CLIENT_ID}
       - DRONE_GITEA_CLIENT_SECRET=${DRONE_GITEA_CLIENT_SECRET}
       - DRONE_RPC_SECRET=${DRONE_RPC_SECRET}
-      - DRONE_SERVER_HOST=${DOMAIN}:4001
+      - DRONE_SERVER_HOST=drone.${DOMAIN}
       - DRONE_SERVER_PROTO=http
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=web"
+      - "traefik.http.routers.drone.rule=Host(`drone.${DOMAIN}`)"
+      - "traefik.http.routers.drone.middlewares=redirect-to-https"
+      - "traefik.http.services.drone.loadbalancer.server.port=80"
 
   drone-runner:
     image: drone/drone-runner-docker:latest
@@ -47,8 +57,8 @@ services:
       - /etc/timezone:/etc/timezone:ro
       - /etc/localtime:/etc/localtime:ro
     environment:
-      - DRONE_RPC_PROTO=http
-      - DRONE_RPC_HOST=drone
+      - DRONE_RPC_PROTO=https
+      - DRONE_RPC_HOST=drone.${DOMAIN}
       - DRONE_RPC_SECRET=${DRONE_RPC_SECRET}
       - DRONE_RUNNER_CAPACITY=2
       - DRONE_RUNNER_NAME=drone-runner-1

@@ -35,17 +35,42 @@ services:
     container_name: traefik
     restart: unless-stopped
     command:
+      - "--global.checkNewVersion=false"
+      - "--global.sendAnonymousUsage=false"
+
+      - "--log.level=INFO"
       - "--api.insecure=true"
       - "--providers.docker=true"
       - "--providers.docker.exposedbydefault=false"
+
       - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+
+      - "--certificatesresolvers.letsencrypt.acme.dnschallenge=true"
+      - "--certificatesresolvers.letsencrypt.acme.dnschallenge.provider=cloudflare"
+      # - "--certificatesresolvers.letsencrypt.acme.caserver=https://acme-staging-v02.api.letsencrypt.org/directory"
+      - "--certificatesresolvers.letsencrypt.acme.email=${T_MAIL}"
+      - "--certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json"
+      - "--entrypoints.websecure.http.tls.certresolver=letsencrypt"
     ports:
       - 80:80
-      - 8080:8080
+      - 443:443/tcp
+      - 443:443/udp
     networks:
       - web
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
+      - /data/docker/volumes/traefik/letsencrypt:/letsencrypt
+    environment:
+      - CF_DNS_API_TOKEN=${CF_API_KEY}
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=web"
+      - "traefik.http.routers.traefik.rule=Host(`traefik.${DOMAIN}`)"
+      - "traefik.http.routers.traefik.middlewares=redirect-to-https"
+      - "traefik.http.services.traefik.loadbalancer.server.port=8080"
+      - "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
+      - "traefik.http.middlewares.redirect-to-https.redirectscheme.permanent=true"
 
   dockerhome:
     image: pkdevel/docker-home:latest
@@ -59,7 +84,7 @@ services:
       - "traefik.enable=true"
       - "traefik.docker.network=web"
       - "traefik.http.routers.dockerhome.rule=Host(`docker.${DOMAIN}`)"
-      - "traefik.http.routers.dockerhome.entrypoints=web"
+      - "traefik.http.routers.dockerhome.middlewares=redirect-to-https"
       - "traefik.http.services.dockerhome.loadbalancer.server.port=8080"
 
 networks:

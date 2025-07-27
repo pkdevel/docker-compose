@@ -30,9 +30,15 @@ services:
     image: nodered/node-red:latest
     container_name: node-red
     restart: unless-stopped
-    ports:
-      - 1880:1880
+    networks:
+      - web
     volumes:
       - /data/docker/volumes/node-red:/data
     environment:
       - TZ=Europe/Berlin
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=web"
+      - "traefik.http.routers.nodered.rule=Host(`nodered.${DOMAIN}`)"
+      - "traefik.http.routers.nodered.middlewares=redirect-to-https"
+      - "traefik.http.services.nodered.loadbalancer.server.port=1880"
