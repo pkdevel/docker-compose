@@ -88,6 +88,21 @@ services:
       - "traefik.http.routers.dockerhome.middlewares=redirect-to-https"
       - "traefik.http.services.dockerhome.loadbalancer.server.port=8080"
 
+  glance:
+    image: glanceapp/glance
+    container_name: glance
+    restart: unless-stopped
+    networks:
+      - web
+    volumes:
+      - /data/docker/volumes/glance:/app/config
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=web"
+      - "traefik.http.routers.glance.rule=Host(`glance.${DOMAIN}`)"
+      - "traefik.http.routers.glance.middlewares=redirect-to-https"
+      - "traefik.http.services.glance.loadbalancer.server.port=8080"
+
 networks:
   web:
     name: web
