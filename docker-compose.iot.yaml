@@ -13,6 +13,12 @@ services:
       - /run/dbus:/run/dbus:ro
     environment:
       - TZ=Europe/Berlin
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=dockerhost"
+      - "traefik.http.routers.hass.rule=Host(`hass.${DOMAIN}`)"
+      - "traefik.http.routers.hass.middlewares=redirect-to-https"
+      - "traefik.http.services.hass.loadbalancer.server.url=http://dockerhost:8123"
 
   mqtt:
     image: eclipse-mosquitto:latest
