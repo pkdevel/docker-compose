@@ -27,14 +27,18 @@ services:
       - "--global.sendAnonymousUsage=false"
 
       - "--log.level=INFO"
+      - "--accessLog.filePath=/log/access.log"
+
       - "--api.insecure=true"
       - "--providers.docker=true"
       - "--providers.docker.exposedbydefault=false"
 
       - "--entrypoints.web.address=:80"
       - "--entrypoints.web.asDefault=true"
+      - "--entrypoints.web.observability.accessLogs=false"
       - "--entrypoints.websecure.address=:443"
       - "--entrypoints.websecure.asDefault=true"
+      - "--entrypoints.websecure.observability.accessLogs=false"
       - "--entrypoints.websecure-ext.address=:9443"
 
       - "--certificatesresolvers.letsencrypt.acme.dnschallenge=true"
@@ -57,6 +61,7 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - /data/docker/volumes/traefik/letsencrypt:/letsencrypt
+      - /data/docker/volumes/traefik/log:/log
     environment:
       - TZ=Europe/Berlin
       - CF_DNS_API_TOKEN=${CF_API_KEY}
