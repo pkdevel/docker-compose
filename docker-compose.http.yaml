@@ -28,6 +28,7 @@ services:
 
       - "--log.level=INFO"
       - "--accessLog.filePath=/log/access.log"
+      - "--accessLog.addInternals=true"
 
       - "--api.insecure=true"
       - "--providers.docker=true"
