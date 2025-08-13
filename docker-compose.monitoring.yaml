@@ -64,6 +64,7 @@ services:
       - /data/docker/volumes/beszel/agent_data:/var/lib/beszel-agent
       - /data/docker/volumes/beszel/socket:/beszel_socket
       - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /mnt/usb/wd/.beszel:/extra-filesystems/wd:ro
     environment:
       TZ: Europe/Berlin
       LISTEN: /beszel_socket/beszel.sock
