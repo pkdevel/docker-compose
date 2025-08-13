@@ -2,7 +2,7 @@ include:
   - docker-compose.arr.yaml
   - docker-compose.atuin.yaml
   - docker-compose.backup.yaml
-  # - docker-compose.git.yaml
+  - docker-compose.git.yaml
   - docker-compose.http.yaml
   - docker-compose.iot.yaml
   - docker-compose.media.yaml
