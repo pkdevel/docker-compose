@@ -108,5 +108,7 @@ services:
 networks:
   web:
     name: web
+    enable_ipv6: true
   web-ext:
     name: web-ext
+    enable_ipv6: true

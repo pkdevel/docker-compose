@@ -13,10 +13,13 @@ services:
     image: oznu/cloudflare-ddns:latest
     container_name: cloudflare-ddns
     restart: unless-stopped
+    network_mode: host
     environment:
       API_KEY: ${CF_API_KEY}
       ZONE: ${CF_ZONE}
       SUBDOMAIN: ${CF_SUBDOMAIN}
+      RRTYPE: AAAA
+      INTERFACE: enp87s0
 
   dockerhost:
     image: qoomon/docker-host:latest
